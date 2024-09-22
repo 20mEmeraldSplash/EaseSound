@@ -8,15 +8,17 @@
 import SwiftUI
 import WatchConnectivity
 
-import SwiftUI
-
 struct ContentView: View {
     @ObservedObject var connectivity = Connectivity()
+    @State private var inputText: String = "" // 新增状态变量
 
     var body: some View {
         VStack {
             Text(connectivity.receivedText)
-            Button("Message", action: sendFile)
+            TextField("输入消息", text: $inputText) // 新增文本输入框
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding()
+            Button("发送", action: sendFile) // 更新按钮文本
         }
         .padding()
     }
@@ -28,7 +30,7 @@ struct ContentView: View {
         debugPrint(sourceURL)
 
         if !fm.fileExists(atPath: sourceURL.path) {
-            try? "Hello, from a phone file".write(to: sourceURL, atomically: true, encoding: .utf8)
+            try? inputText.write(to: sourceURL, atomically: true, encoding: .utf8) // 使用输入的文本
         }
 
         connectivity.sendFile(sourceURL)
