@@ -29,11 +29,14 @@ struct ContentView: View {
         debugPrint(sourceURL.lastPathComponent)
         debugPrint(sourceURL)
 
-        if !fm.fileExists(atPath: sourceURL.path) {
-            try? inputText.write(to: sourceURL, atomically: true, encoding: .utf8) // 使用输入的文本
-        }
+        // 更新文件内容
+        try? inputText.write(to: sourceURL, atomically: true, encoding: .utf8) // 使用输入的文本
 
+        // 发送文件
         connectivity.sendFile(sourceURL)
+
+        // 清空输入框
+        inputText = "" // 新增：清空输入框
     }
 }
 
