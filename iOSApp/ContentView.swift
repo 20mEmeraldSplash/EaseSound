@@ -7,10 +7,13 @@
 
 import SwiftUI
 import WatchConnectivity
+import UIKit
 
 struct ContentView: View {
     @ObservedObject var connectivity = Connectivity()
     @State private var inputText: String = "" // 新增状态变量
+    @State private var showDocumentPicker = false
+    @State private var selectedFileName: String = "未选择文件"
 
     var body: some View {
         VStack {
@@ -19,8 +22,17 @@ struct ContentView: View {
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding()
             Button("发送", action: sendFile) // 更新按钮文本
+            Button("选择文件") {
+                self.showDocumentPicker = true
+            }
+            Text("选择的文件：\(selectedFileName)")
         }
         .padding()
+        .sheet(isPresented: $showDocumentPicker, onDismiss: {
+            print("Document Picker was dismissed")
+        }) {
+            DocumentPicker(selectedFileName: $selectedFileName)
+        }
     }
 
     func sendFile() {
@@ -53,6 +65,42 @@ extension URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
     }
 }
+
+struct DocumentPicker: UIViewControllerRepresentable {
+    @Binding var selectedFileName: String
+
+    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
+        let controller = UIDocumentPickerViewController(forOpeningContentTypes: [.item], asCopy: true)
+        controller.delegate = context.coordinator
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {
+        // 更新逻辑（如果需要）
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    class Coordinator: NSObject, UIDocumentPickerDelegate {
+        var parent: DocumentPicker
+
+        init(_ parent: DocumentPicker) {
+            self.parent = parent
+        }
+
+        func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+            guard let url = urls.first else { return }
+            parent.selectedFileName = url.lastPathComponent
+        }
+
+        func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+            print("document picker was cancelled")
+        }
+    }
+}
+
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
