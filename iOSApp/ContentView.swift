@@ -30,13 +30,20 @@ struct ContentView: View {
         debugPrint(sourceURL)
 
         // 更新文件内容
-        try? inputText.write(to: sourceURL, atomically: true, encoding: .utf8) // 使用输入的文本
+        do {
+            try inputText.write(to: sourceURL, atomically: true, encoding: .utf8) // 使用输入的文本
+            print("文件内容已更新: \(inputText)") // 新增：打印更新的内容
+        } catch {
+            print("写入文件失败: \(error)") // 新增：打印错误信息
+        }
 
         // 发送文件
         connectivity.sendFile(sourceURL)
+        print("文件已发送: \(sourceURL)") // 新增：打印发送的文件路径
 
         // 清空输入框
         inputText = "" // 新增：清空输入框
+        print("输入框已清空") // 新增：打印清空状态
     }
 }
 
