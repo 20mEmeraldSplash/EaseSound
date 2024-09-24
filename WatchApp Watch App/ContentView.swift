@@ -15,7 +15,7 @@ struct ContentView: View {
         VStack {
             Text(connectivity.receivedText)
                 .padding()
-            Text("123")
+            Text("😊") // 新增提示语
         }
     }
 }

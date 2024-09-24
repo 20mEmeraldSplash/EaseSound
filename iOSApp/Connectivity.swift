@@ -52,23 +52,28 @@ class Connectivity: NSObject, ObservableObject, WCSessionDelegate {
 
     func session(_ session: WCSession, didReceive file: WCSessionFile) {
         let fm = FileManager.default
-        let destURL = URL.documentsDirectory.appendingPathComponent("saved_file")
+        let destURL = URL.documentsDirectory.appendingPathComponent("received_file.mp3") // 保存为 .mp3 文件
         do {
             if fm.fileExists(atPath: destURL.path) {
                 try fm.removeItem(at: destURL)
-                print("已删除旧文件: \(destURL)") // 新增：打印删除状态
+                print("已删除旧文件: \(destURL)")
             }
             try fm.copyItem(at: file.fileURL, to: destURL)
-            let contents = try String(contentsOf: destURL)
-            receivedText = "Received file: \(contents)"
-            print("文件接收成功: \(contents)") // 新增：打印接收到的内容
+            
+            // 处理二进制文件，例如 MP3 文件
+            let fileData = try Data(contentsOf: destURL)
+            DispatchQueue.main.async {
+                self.receivedText = "MP3 : \(fileData.count) bytes"
+            }
+            print("文件接收成功，大小为: \(fileData.count) 字节")
         } catch {
-            receivedText = "File copy failed."
-            print("文件复制失败: \(error)") // 新增：打印错误信息
+            DispatchQueue.main.async {
+                self.receivedText = "File copy failed."
+            }
+            print("文件复制失败: \(error)")
         }
-
-
     }
+
 
 }
 
