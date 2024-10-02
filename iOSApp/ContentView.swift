@@ -11,82 +11,116 @@ import UIKit
 
 struct ContentView: View {
     @ObservedObject var connectivity = Connectivity()
-    @State private var inputText: String = ""
     @State private var showDocumentPicker = false
     @State private var selectedFileName: String = "未选择文件"
     @State private var selectedFileURL: URL? = nil
-    @State private var uploadedSounds: [String] = [] // 存储已上传声音的名称
+    @State private var uploadedSounds: [String] = []
+    @State private var showImagePicker = false
+    @State private var selectedImage: UIImage? = nil
 
     var body: some View {
-        VStack(spacing: 10) { // 修改间距为10
-            // 上传新声音标题
+        VStack(spacing: 16) {
             Text("上传新声音")
-                .font(.title) // 修改字体大小
+                .font(.title)
                 .fontWeight(.bold)
-                .padding(.leading, 8) // 修改左边距为24px
-                .padding(.trailing, 8) // 添加右边距为24px
-                .frame(maxWidth: .infinity, alignment: .leading) // 靠左对齐
+                .padding(.leading, 8)
+                .padding(.trailing, 8)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-            // 选择声音框
-            Button(action: {
-                self.showDocumentPicker = true
-            }) {
-                HStack { // 使用 HStack 来排列图标和文字
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.title) // 修改图标大小
-                    Text("选择您的声音")
-                        .font(.headline) // 修改字体大小
-                        .foregroundColor(.blue)
-                }
-                .padding() // 添加内边距
-                .frame(maxWidth: .infinity, minHeight: 50) // 设置最小高度
-                .background(Color.purple.opacity(0.2))
-                .cornerRadius(10)
-                .padding(.top, 0) // 移除顶部间距
-                .padding(.leading, 8) // 修改左边距为24px
-                .padding(.trailing, 8) // 添加右边距为24px
-            }
-            .sheet(isPresented: $showDocumentPicker) {
-                DocumentPicker(selectedFileName: $selectedFileName, selectedFileURL: $selectedFileURL)
-            }
+            // 使用长方框包裹选择声音和添加封面图像的按钮
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.black, lineWidth: 1) // 设置边框颜色和宽度
+                .frame(height: 120) // 设置高度
+                .overlay(
+                    HStack(spacing: 0) { // 使用 HStack，设置按钮之间的间距
+                        Button(action: {
+                            self.showDocumentPicker = true
+                        }) {
+                            VStack {
+                                Image(systemName: "square.and.arrow.up")
+                                    .font(.title)
+                                Text(selectedFileName)
+                                    .font(.headline)
+                                    .foregroundColor(.blue)
+                                    .lineLimit(1)
+                            }
+                            .padding() // 内部 padding
+                            .background(Color.clear) // 设置背景为透明
+                        }
+                        .sheet(isPresented: $showDocumentPicker) {
+                            DocumentPicker(selectedFileName: $selectedFileName, selectedFileURL: $selectedFileURL)
+                        }
 
-            // 上传按钮
-            HStack { // 使用 HStack 使按钮右对齐
-                Spacer() // 添加 Spacer 以推送按钮到右边
+                        Spacer() // 添加 Spacer 以创建空间
+
+                        Button(action: {
+                            self.showImagePicker = true
+                        }) {
+                            VStack {
+                                if let selectedImage = selectedImage {
+                                    Image(uiImage: selectedImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 104, height: 104)
+                                        .clipped()
+                                        .cornerRadius(10)
+                                } else {
+                                    Text("Add Cover Image")
+                                        .font(.headline)
+                                        .foregroundColor(.blue)
+                                        .padding(8)
+                                        .frame(width: 104, height: 104)
+                                        .background(Color.gray.opacity(0.2))
+                                        .cornerRadius(10)
+                                }
+                            }
+                            .padding(.trailing, 8)
+                            
+                        }
+                        .sheet(isPresented: $showImagePicker) {
+                            ImagePicker(selectedImage: $selectedImage)
+                        }
+                    }
+                    
+                )
+                .padding(8)
+                
+
+            HStack {
+                Spacer()
                 Button(action: {
-                    if let fileURL = selectedFileURL {
+                    if let fileURL = selectedFileURL, selectedImage != nil {
                         sendSelectedFile(fileURL: fileURL)
                     } else {
-                        print("未选择文件")
+                        print("未选择文件或图片")
                     }
                 }) {
                     Text("上传")
                         .font(.headline)
                         .foregroundColor(.blue)
                         .padding()
-                        .frame(width: 120, height: 32) // 设置宽度和高度
+                        .frame(width: 120, height: 32)
                         .background(RoundedRectangle(cornerRadius: 10).stroke(Color.blue, lineWidth: 2))
                 }
-                .padding(.trailing, 8) // 添加右边距为8px
+                .padding(.trailing, 8)
+                .disabled(selectedFileURL == nil || selectedImage == nil)
             }
 
-            // 已上传声音列表
             HStack {
                 Text("我的声音列表")
                     .font(.title2)
                     .foregroundColor(.blue)
                 Spacer()
-                Text("\(uploadedSounds.count)") // 显示上传数量
+                Text("\(uploadedSounds.count)")
                     .padding(5)
                     .background(Color.purple.opacity(0.2))
                     .clipShape(Circle())
             }
             .padding()
 
-            // 显示已上传声音名称
             List(uploadedSounds, id: \.self) { soundName in
                 Text(soundName)
-                    .background(Color.clear) // 移除灰色背景
+                    .background(Color.clear)
             }
 
             Spacer()
@@ -99,13 +133,12 @@ struct ContentView: View {
         connectivity.sendFile(fileURL)
         print("文件已发送: \(fileURL)")
 
-        // 更新已上传声音的名称列表
         uploadedSounds.append(selectedFileName)
         print("已上传声音列表更新: \(uploadedSounds)")
 
-        // 清空选择的文件
         selectedFileName = "未选择文件"
         selectedFileURL = nil
+        selectedImage = nil
     }
 }
 
@@ -120,7 +153,7 @@ struct DocumentPicker: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {
-        // 更新逻辑（如果需要）
+        // Update logic (if needed)
     }
 
     func makeCoordinator() -> Coordinator {
@@ -142,6 +175,45 @@ struct DocumentPicker: UIViewControllerRepresentable {
 
         func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
             print("文件选择被取消")
+        }
+    }
+}
+
+// Image Picker to select images from the photo library
+struct ImagePicker: UIViewControllerRepresentable {
+    @Binding var selectedImage: UIImage?
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.delegate = context.coordinator
+        picker.sourceType = .photoLibrary
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {
+        // Update logic (if needed)
+    }
+
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        var parent: ImagePicker
+
+        init(_ parent: ImagePicker) {
+            self.parent = parent
+        }
+
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let image = info[.originalImage] as? UIImage {
+                parent.selectedImage = image
+            }
+            picker.dismiss(animated: true)
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            picker.dismiss(animated: true)
         }
     }
 }
