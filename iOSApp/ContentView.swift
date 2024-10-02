@@ -39,14 +39,18 @@ struct ContentView: View {
                             VStack {
                                 Image(systemName: "square.and.arrow.up")
                                     .font(.title)
+                                    .foregroundColor(.black)
                                 Text(selectedFileName)
                                     .font(.headline)
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(.black)
                                     .lineLimit(1)
+                                    .foregroundColor(.black)
                             }
                             .padding() // 内部 padding
                             .background(Color.clear) // 设置背景为透明
+                            .foregroundColor(.black)
                         }
+                        .frame(maxWidth: .infinity) // 设置宽度为可用空间
                         .sheet(isPresented: $showDocumentPicker) {
                             DocumentPicker(selectedFileName: $selectedFileName, selectedFileURL: $selectedFileURL)
                         }
@@ -67,7 +71,7 @@ struct ContentView: View {
                                 } else {
                                     Text("Add Cover Image")
                                         .font(.headline)
-                                        .foregroundColor(.blue)
+                                        .foregroundColor(.black)
                                         .padding(8)
                                         .frame(width: 104, height: 104)
                                         .background(Color.gray.opacity(0.2))
@@ -75,16 +79,13 @@ struct ContentView: View {
                                 }
                             }
                             .padding(.trailing, 8)
-                            
                         }
                         .sheet(isPresented: $showImagePicker) {
                             ImagePicker(selectedImage: $selectedImage)
                         }
                     }
-                    
                 )
                 .padding(8)
-                
 
             HStack {
                 Spacer()
@@ -97,10 +98,10 @@ struct ContentView: View {
                 }) {
                     Text("上传")
                         .font(.headline)
-                        .foregroundColor(.blue)
+                        .foregroundColor(.black)
                         .padding()
                         .frame(width: 120, height: 32)
-                        .background(RoundedRectangle(cornerRadius: 10).stroke(Color.blue, lineWidth: 2))
+                        .background(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 2))
                 }
                 .padding(.trailing, 8)
                 .disabled(selectedFileURL == nil || selectedImage == nil)
@@ -109,7 +110,7 @@ struct ContentView: View {
             HStack {
                 Text("我的声音列表")
                     .font(.title2)
-                    .foregroundColor(.blue)
+                    .foregroundColor(.black)
                 Spacer()
                 Text("\(uploadedSounds.count)")
                     .padding(5)
@@ -223,3 +224,4 @@ struct ContentView_Previews: PreviewProvider {
         ContentView()
     }
 }
+
