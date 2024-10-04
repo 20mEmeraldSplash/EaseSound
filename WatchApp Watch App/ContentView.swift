@@ -4,17 +4,42 @@
 //
 //  Created by 汪猛男 on 9/22/24.
 //
-
+import UIKit
 import SwiftUI
 import WatchConnectivity
 import AVFoundation
 import CoreMotion
+
 
 struct ContentView: View {
     @StateObject var connectivity = Connectivity()
     @State private var audioPlayer: AVAudioPlayer? // Audio player
     private let motionManager = CMMotionManager() // For detecting motion
     @State private var coverImage: UIImage? = nil // To store the cover image
+
+    func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
+        if let action = message["action"] as? String, action == "update" {
+            print("---------重新加载");
+            DispatchQueue.main.async {
+                loadCoverImage() // 重新加载封面图像
+                // 确保 UI 刷新
+                self.coverImage = self.coverImage // 触发视图更新
+            }
+        }
+    }
+
+    func loadCoverImage() {
+        DispatchQueue.main.async {
+            let imagePath = URL.documentsDirectory.appendingPathComponent("received_cover_image.png")
+            print("*尝试加载封面图像: \(imagePath)") // 添加调试信息
+            if let imageData = try? Data(contentsOf: imagePath), let image = UIImage(data: imageData) {
+                self.coverImage = image // 更新封面图像
+                print("*成功加载封面图像") // 添加调试信息
+            } else {
+                print("*加载封面图像失败") // 添加调试信息
+            }
+        }
+    }
 
     var body: some View {
         VStack {
@@ -57,18 +82,12 @@ struct ContentView: View {
         }
     }
 
-    // Load the cover image (assuming it's received as part of the connectivity session)
-    func loadCoverImage() {
-        let imagePath = URL.documentsDirectory.appendingPathComponent("received_cover_image.png")
-        if let imageData = try? Data(contentsOf: imagePath), let image = UIImage(data: imageData) {
-            self.coverImage = image
-        } else {
-            print("Failed to load cover image")
-        }
-    }
+    
+
 
     // Function to play audio
     func playAudio() {
+        loadCoverImage() //可能要删掉
         let fileURL = URL.documentsDirectory.appendingPathComponent("received_file.mp3")
         do {
             audioPlayer = try AVAudioPlayer(contentsOf: fileURL)
@@ -79,13 +98,7 @@ struct ContentView: View {
         }
     }
 
-    func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
-        if let action = message["action"] as? String, action == "update" {
-            // 处理更新逻辑，例如重新加载音频列表
-            loadCoverImage() // 重新加载封面图像
-            // 这里可以添加其他更新逻辑
-        }
-    }
+    
 
     // Start monitoring motion for wrist flick
     private func startMonitoringMotion() {

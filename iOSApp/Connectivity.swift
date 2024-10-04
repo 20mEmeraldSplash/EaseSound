@@ -1,3 +1,4 @@
+import UIKit
 import Foundation
 import WatchConnectivity
 
@@ -122,6 +123,32 @@ class Connectivity: NSObject, ObservableObject, WCSessionDelegate {
                 self.receivedText = "File copy failed."
             }
             print("文件复制失败: \(error)")
+        }
+    }
+
+    // 新增：接收消息并处理更新
+    func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
+        if let action = message["action"] as? String, action == "update" {
+            print("收到更新消息，重新加载封面图像")
+            DispatchQueue.main.async {
+                self.loadCoverImage() // 调用加载封面图像的方法
+            }
+        }
+    }
+
+    // 加载封面图像的方法
+    func loadCoverImage() {
+        let imagePath = URL.documentsDirectory.appendingPathComponent("received_cover_image.png")
+        print("尝试加载封面图像: \(imagePath)")
+        if let imageData = try? Data(contentsOf: imagePath), let image = UIImage(data: imageData) {
+            DispatchQueue.main.async {
+                // 假设你有一个方法来更新手表端的 UI
+                // 这里需要调用手表端的更新方法
+                // 例如：self.updateCoverImage(image)
+                print("成功加载封面图像")
+            }
+        } else {
+            print("加载封面图像失败")
         }
     }
 }

@@ -131,9 +131,13 @@ struct ContentView: View {
         print("准备发送文件: \(fileURL)")
         connectivity.sendFile(fileURL)  // 发送 MP3 文件
 
-        if let imageData = image.pngData() {
+        // 压缩图片并保存
+        if let imageData = image.jpegData(compressionQuality: 0.1) { // 压缩到50%质量
             let imageURL = saveImageToFile(data: imageData)
+            print("准备发送图片文件: \(imageURL)") // 添加调试信息
             connectivity.sendFile(imageURL)  // 发送图片文件
+        } else {
+            print("压缩图片失败")
         }
 
         // 新增代码：发送更新通知到手表
