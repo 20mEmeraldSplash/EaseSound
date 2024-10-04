@@ -7,62 +7,101 @@
 
 import SwiftUI
 import WatchConnectivity
-import AVFoundation // 导入 AVFoundation 以支持音频播放
-import CoreMotion // 导入 CoreMotion 以监测运动
+import AVFoundation
+import CoreMotion
 
 struct ContentView: View {
     @StateObject var connectivity = Connectivity()
-    @State private var audioPlayer: AVAudioPlayer? // 新增音频播放器
-    private let motionManager = CMMotionManager() // 新增：运动管理器
+    @State private var audioPlayer: AVAudioPlayer? // Audio player
+    private let motionManager = CMMotionManager() // For detecting motion
+    @State private var coverImage: UIImage? = nil // To store the cover image
 
     var body: some View {
         VStack {
-            Text(connectivity.receivedText)
-                .padding()
-            Text("😊") // 新增提示语
-            
-            // 播放按钮
-            Button("播放音频") {
-                playAudio() // 调用播放音频的函数
+            // Display the cover image in a circle if available
+            if let coverImage = coverImage {
+                Image(uiImage: coverImage)
+                    .resizable()
+                    .scaledToFit()
+                    .clipShape(Circle()) // Make the image circular
+                    .frame(width: 100, height: 100) // Adjust the size as needed
+                    .padding()
+            } else {
+                Circle()
+                    .fill(Color.gray.opacity(0.5))
+                    .frame(width: 100, height: 100)
+                    .overlay(Text("No Cover").foregroundColor(.white))
+                    .padding()
+            }
+
+            // Play button below the cover image
+            Button(action: {
+                playAudio()
+            }) {
+                Image(systemName: "play.circle.fill")
+                    .resizable()
+                    .frame(width: 50, height: 50) // Adjust the play button size
+                    .foregroundColor(.purple)
             }
             .padding()
-            .disabled(connectivity.receivedText.isEmpty) // 如果没有接收到音频，则禁用按钮
+            .disabled(connectivity.receivedText.isEmpty) // Disable if no audio received
+
+            Spacer()
         }
         .onAppear {
-            startMonitoringMotion() // 启动运动监测
+            startMonitoringMotion() // Start motion detection
+            loadCoverImage() // Load the cover image if available
         }
         .onDisappear {
-            stopMonitoringMotion() // 停止运动监测
+            stopMonitoringMotion() // Stop motion detection
         }
     }
 
-    // 播放音频的函数
+    // Load the cover image (assuming it's received as part of the connectivity session)
+    func loadCoverImage() {
+        let imagePath = URL.documentsDirectory.appendingPathComponent("received_cover_image.png")
+        if let imageData = try? Data(contentsOf: imagePath), let image = UIImage(data: imageData) {
+            self.coverImage = image
+        } else {
+            print("Failed to load cover image")
+        }
+    }
+
+    // Function to play audio
     func playAudio() {
-        let fileURL = URL.documentsDirectory.appendingPathComponent("received_file.mp3") // 确保文件路径正确
+        let fileURL = URL.documentsDirectory.appendingPathComponent("received_file.mp3")
         do {
             audioPlayer = try AVAudioPlayer(contentsOf: fileURL)
             audioPlayer?.play()
-            print("开始播放音频")
+            print("Audio started playing")
         } catch {
-            print("播放音频失败: \(error)")
+            print("Failed to play audio: \(error)")
         }
     }
 
-    // 启动运动监测
+    func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
+        if let action = message["action"] as? String, action == "update" {
+            // 处理更新逻辑，例如重新加载音频列表
+            loadCoverImage() // 重新加载封面图像
+            // 这里可以添加其他更新逻辑
+        }
+    }
+
+    // Start monitoring motion for wrist flick
     private func startMonitoringMotion() {
         if motionManager.isAccelerometerAvailable {
             motionManager.accelerometerUpdateInterval = 0.1
             motionManager.startAccelerometerUpdates(to: .main) { data, error in
                 guard let data = data else { return }
-                // 检测挥动手臂的条件
+                // Detect strong wrist flick motion
                 if abs(data.acceleration.x) > 1.5 || abs(data.acceleration.y) > 1.5 {
-                    playAudio() // 播放音频
+                    playAudio() // Play audio when flicked
                 }
             }
         }
     }
 
-    // 停止运动监测
+    // Stop motion monitoring
     private func stopMonitoringMotion() {
         motionManager.stopAccelerometerUpdates()
     }

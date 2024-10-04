@@ -27,12 +27,11 @@ struct ContentView: View {
                 .padding(.trailing, 8)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            // 使用长方框包裹选择声音和添加封面图像的按钮
             RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.black, lineWidth: 1) // 设置边框颜色和宽度
-                .frame(height: 120) // 设置高度
+                .stroke(Color.black, lineWidth: 1)
+                .frame(height: 120)
                 .overlay(
-                    HStack(spacing: 0) { // 使用 HStack，设置按钮之间的间距
+                    HStack(spacing: 0) {
                         Button(action: {
                             self.showDocumentPicker = true
                         }) {
@@ -44,18 +43,17 @@ struct ContentView: View {
                                     .font(.headline)
                                     .foregroundColor(.black)
                                     .lineLimit(1)
-                                    .foregroundColor(.black)
                             }
-                            .padding() // 内部 padding
-                            .background(Color.clear) // 设置背景为透明
+                            .padding()
+                            .background(Color.clear)
                             .foregroundColor(.black)
                         }
-                        .frame(maxWidth: .infinity) // 设置宽度为可用空间
+                        .frame(maxWidth: .infinity)
                         .sheet(isPresented: $showDocumentPicker) {
                             DocumentPicker(selectedFileName: $selectedFileName, selectedFileURL: $selectedFileURL)
                         }
 
-                        Spacer() // 添加 Spacer 以创建空间
+                        Spacer()
 
                         Button(action: {
                             self.showImagePicker = true
@@ -90,8 +88,8 @@ struct ContentView: View {
             HStack {
                 Spacer()
                 Button(action: {
-                    if let fileURL = selectedFileURL, selectedImage != nil {
-                        sendSelectedFile(fileURL: fileURL)
+                    if let fileURL = selectedFileURL, let image = selectedImage {
+                        sendSelectedFiles(fileURL: fileURL, image: image)
                     } else {
                         print("未选择文件或图片")
                     }
@@ -129,10 +127,18 @@ struct ContentView: View {
         .padding()
     }
 
-    func sendSelectedFile(fileURL: URL) {
+    func sendSelectedFiles(fileURL: URL, image: UIImage) {
         print("准备发送文件: \(fileURL)")
-        connectivity.sendFile(fileURL)
-        print("文件已发送: \(fileURL)")
+        connectivity.sendFile(fileURL)  // 发送 MP3 文件
+
+        if let imageData = image.pngData() {
+            let imageURL = saveImageToFile(data: imageData)
+            connectivity.sendFile(imageURL)  // 发送图片文件
+        }
+
+        // 新增代码：发送更新通知到手表
+        let updateMessage = ["action": "update", "fileName": selectedFileName]
+        connectivity.sendMessage(updateMessage)  // 发送更新消息
 
         uploadedSounds.append(selectedFileName)
         print("已上传声音列表更新: \(uploadedSounds)")
@@ -141,8 +147,20 @@ struct ContentView: View {
         selectedFileURL = nil
         selectedImage = nil
     }
+
+    func saveImageToFile(data: Data) -> URL {
+        let fileURL = URL.documentsDirectory.appendingPathComponent("temp_image.png")
+        do {
+            try data.write(to: fileURL)
+            print("图片保存成功: \(fileURL)")
+        } catch {
+            print("保存图片失败: \(error)")
+        }
+        return fileURL
+    }
 }
 
+// 恢复的 DocumentPicker 组件
 struct DocumentPicker: UIViewControllerRepresentable {
     @Binding var selectedFileName: String
     @Binding var selectedFileURL: URL?
@@ -154,7 +172,7 @@ struct DocumentPicker: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {
-        // Update logic (if needed)
+        // 无需更新
     }
 
     func makeCoordinator() -> Coordinator {
@@ -180,7 +198,7 @@ struct DocumentPicker: UIViewControllerRepresentable {
     }
 }
 
-// Image Picker to select images from the photo library
+// 恢复的 ImagePicker 组件
 struct ImagePicker: UIViewControllerRepresentable {
     @Binding var selectedImage: UIImage?
 
@@ -196,7 +214,7 @@ struct ImagePicker: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {
-        // Update logic (if needed)
+        // 无需更新
     }
 
     class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
@@ -218,10 +236,3 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
     }
 }
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
-    }
-}
-
