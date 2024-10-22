@@ -68,7 +68,8 @@ struct ContentView: View {
                     .frame(width: 50, height: 50) // Adjust the play button size
                     .foregroundColor(.purple)
             }
-            .padding()
+            .background(Color.clear) // Ensure the background is transparent
+            .buttonStyle(PlainButtonStyle())
             .disabled(connectivity.receivedText.isEmpty) // Disable if no audio received
 
             Spacer()
