@@ -17,6 +17,7 @@ struct ContentView: View {
     private let motionManager = CMMotionManager() // For detecting motion
     @State private var coverImage: UIImage? = nil // To store the cover image
     @State private var isAudioAvailable = false // To check if audio is available
+    @State private var showReceiveButton = true
 
     func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
         if let action = message["action"] as? String, action == "update" {
@@ -70,16 +71,33 @@ struct ContentView: View {
             }
 
             // Play button below the cover image
-            Button(action: {
-                playAudio()
-            }) {
-                Image(systemName: "play.circle.fill")
-                    .resizable()
-                    .frame(width: 50, height: 50) // Adjust the play button size
-                    .foregroundColor(isAudioAvailable ? .white : .gray) 
+            if showReceiveButton {
+                Button(action: {
+                    // 点击接收声音按钮后加载音频和封面
+                    loadCoverImage()
+                    checkAudioAvailability()
+                    showReceiveButton = false // 隐藏按钮，显示播放界面
+                }) {
+                    Text("接收声音")
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.blue)
+                        .cornerRadius(10)
+                }
+                .background(Color.clear)
+                .buttonStyle(PlainButtonStyle()) // Remove default button style
+            } else{
+                Button(action: {
+                    playAudio()
+                }) {
+                    Image(systemName: "play.circle.fill")
+                        .resizable()
+                        .frame(width: 50, height: 50) // Adjust the play button size
+                        .foregroundColor(isAudioAvailable ? .white : .gray) 
+                }
+                .background(Color.clear)
+                .buttonStyle(PlainButtonStyle()) // Remove default button style
             }
-            .background(Color.clear)
-            .buttonStyle(PlainButtonStyle()) // Remove default button style
 
             Spacer()
         }
