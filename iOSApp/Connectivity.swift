@@ -14,9 +14,36 @@ class Connectivity: NSObject, ObservableObject, WCSessionDelegate {
             session.delegate = self
             session.activate()
             print("WCSession 已初始化并激活")
+            
+            // 添加设备连接状态检查
+            checkDeviceConnection()
         } else {
             print("WCSession 不支持")
         }
+    }
+    func reconnectSession() {
+        print("重新连接 WCSession")
+        WCSession.default.delegate = nil
+        WCSession.default.delegate = self
+        WCSession.default.activate()
+    }
+
+
+    func checkDeviceConnection() {
+        let session = WCSession.default
+        #if os(iOS)
+        if session.isPaired && session.isReachable {
+            print("设备已配对并可达")
+        } else {
+            print("设备未连接")
+        }
+        #else
+        if session.isReachable {
+            print("设备已连接并可达")
+        } else {
+            print("设备未连接")
+        }
+        #endif
     }
 
 #if os(iOS)
@@ -29,6 +56,7 @@ class Connectivity: NSObject, ObservableObject, WCSessionDelegate {
                 }
             } else {
                 print("WCSession 未激活，激活状态为: \(activationState.rawValue)")
+                reconnectSession()
             }
             if let error = error {
                 print("激活时出现错误: \(error.localizedDescription)")
@@ -45,7 +73,11 @@ class Connectivity: NSObject, ObservableObject, WCSessionDelegate {
     }
 #else
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
-        print("watchOS WCSession 激活完成，状态为: \(activationState.rawValue)")
+        if activationState == .activated {
+            print("watchOS WCSession 已激活")
+        } else {
+            print("watchOS WCSession 激活失败，状态为: \(activationState.rawValue)")
+        }
         if let error = error {
             print("watchOS 激活时出现错误: \(error.localizedDescription)")
         }
@@ -56,6 +88,8 @@ class Connectivity: NSObject, ObservableObject, WCSessionDelegate {
     func sendFile(_ url: URL) {
         let session = WCSession.default
         if session.activationState == .activated {
+            // 在发送文件前检查连接状态
+            checkDeviceConnection()
             session.transferFile(url, metadata: ["fileType": url.pathExtension])
             print("文件传输请求已发送: \(url.lastPathComponent)，文件类型为: \(url.pathExtension)")
         } else {
@@ -66,6 +100,8 @@ class Connectivity: NSObject, ObservableObject, WCSessionDelegate {
     func sendMessage(_ message: [String: Any]) {
         let session = WCSession.default
         if session.activationState == .activated {
+            // 在发送消息前检查连接状态
+            checkDeviceConnection()
             session.sendMessage(message, replyHandler: nil) { error in
                 print("发送消息失败: \(error.localizedDescription)")
             }
