@@ -16,13 +16,14 @@ struct ContentView: View {
     @State private var audioPlayer: AVAudioPlayer? // Audio player
     private let motionManager = CMMotionManager() // For detecting motion
     @State private var coverImage: UIImage? = nil // To store the cover image
+    @State private var isAudioAvailable = false // To check if audio is available
 
     func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
         if let action = message["action"] as? String, action == "update" {
-            print("---------重新加载");
+            print("---------重新加载")
             DispatchQueue.main.async {
                 loadCoverImage() // 重新加载封面图像
-                // 确保 UI 刷新
+                checkAudioAvailability() // 检查音频是否可用
                 self.coverImage = self.coverImage // 触发视图更新
             }
         }
@@ -38,6 +39,15 @@ struct ContentView: View {
             } else {
                 print("*加载封面图像失败") // 添加调试信息
             }
+        }
+    }
+
+    func checkAudioAvailability() {
+        let fileURL = URL.documentsDirectory.appendingPathComponent("received_file.mp3")
+        if FileManager.default.fileExists(atPath: fileURL.path) {
+            isAudioAvailable = true
+        } else {
+            isAudioAvailable = false
         }
     }
 
@@ -66,17 +76,18 @@ struct ContentView: View {
                 Image(systemName: "play.circle.fill")
                     .resizable()
                     .frame(width: 50, height: 50) // Adjust the play button size
-                    .foregroundColor(.purple)
+                    .foregroundColor(isAudioAvailable ? .white : .gray) 
             }
-            .background(Color.clear) // Ensure the background is transparent
-            .buttonStyle(PlainButtonStyle())
-            .disabled(connectivity.receivedText.isEmpty) // Disable if no audio received
+            .background(Color.clear)
+            .buttonStyle(PlainButtonStyle()) // Remove default button style
+            .disabled(!isAudioAvailable) // Disable if no audio available
 
             Spacer()
         }
         .onAppear {
             startMonitoringMotion() // Start motion detection
             loadCoverImage() // Load the cover image if available
+            checkAudioAvailability() // Check if audio is available
         }
         .onDisappear {
             stopMonitoringMotion() // Stop motion detection
