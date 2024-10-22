@@ -80,7 +80,6 @@ struct ContentView: View {
             }
             .background(Color.clear)
             .buttonStyle(PlainButtonStyle()) // Remove default button style
-            .disabled(!isAudioAvailable) // Disable if no audio available
 
             Spacer()
         }

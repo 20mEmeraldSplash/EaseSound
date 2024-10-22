@@ -104,7 +104,7 @@ struct ContentView: View {
                 .padding(.trailing, 8)
                 .disabled(selectedFileURL == nil || selectedImage == nil)
             }
-
+            /*
             HStack {
                 Text("我的声音列表")
                     .font(.title2)
@@ -121,6 +121,7 @@ struct ContentView: View {
                 Text(soundName)
                     .background(Color.clear)
             }
+            */
 
             Spacer()
         }
