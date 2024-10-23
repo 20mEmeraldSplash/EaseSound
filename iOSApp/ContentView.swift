@@ -12,7 +12,7 @@ import UIKit
 struct ContentView: View {
     @ObservedObject var connectivity = Connectivity()
     @State private var showDocumentPicker = false
-    @State private var selectedFileName: String = "未选择文件"
+    @State private var selectedFileName: String = "No File Selected"
     @State private var selectedFileURL: URL? = nil
     @State private var uploadedSounds: [String] = []
     @State private var showImagePicker = false
@@ -20,7 +20,7 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("上传新声音")
+            Text("Upload New Sound")
                 .font(.title)
                 .fontWeight(.bold)
                 .padding(.leading, 8)
@@ -91,10 +91,10 @@ struct ContentView: View {
                     if let fileURL = selectedFileURL, let image = selectedImage {
                         sendSelectedFiles(fileURL: fileURL, image: image)
                     } else {
-                        print("未选择文件或图片")
+                        print("No file or image selected")
                     }
                 }) {
-                    Text("上传")
+                    Text("Upload")
                         .font(.headline)
                         .foregroundColor(.black)
                         .padding()
@@ -106,7 +106,7 @@ struct ContentView: View {
             }
             /*
             HStack {
-                Text("我的声音列表")
+                Text("My Sound List")
                     .font(.title2)
                     .foregroundColor(.black)
                 Spacer()
@@ -129,16 +129,16 @@ struct ContentView: View {
     }
 
     func sendSelectedFiles(fileURL: URL, image: UIImage) {
-        print("准备发送文件: \(fileURL)")
+        print("Preparing to send file: \(fileURL)")
         connectivity.sendFile(fileURL)  // 发送 MP3 文件
 
         // 压缩图片并保存
         if let imageData = image.jpegData(compressionQuality: 0.1) { // 压缩到50%质量
             let imageURL = saveImageToFile(data: imageData)
-            print("准备发送图片文件: \(imageURL)") // 添加调试信息
+            print("Preparing to send image file: \(imageURL)") // 添加调试信息
             connectivity.sendFile(imageURL)  // 发送图片文件
         } else {
-            print("压缩图片失败")
+            print("Image compression failed")
         }
 
         // 新增代码：发送更新通知到手表
@@ -146,9 +146,9 @@ struct ContentView: View {
         connectivity.sendMessage(updateMessage)  // 发送更新消息
 
         uploadedSounds.append(selectedFileName)
-        print("已上传声音列表更新: \(uploadedSounds)")
+        print("Uploaded sound list updated: \(uploadedSounds)")
 
-        selectedFileName = "未选择文件"
+        selectedFileName = "No File Selected"
         selectedFileURL = nil
         selectedImage = nil
     }
@@ -157,9 +157,9 @@ struct ContentView: View {
         let fileURL = URL.documentsDirectory.appendingPathComponent("temp_image.png")
         do {
             try data.write(to: fileURL)
-            print("图片保存成功: \(fileURL)")
+            print("Image saved successfully: \(fileURL)")
         } catch {
-            print("保存图片失败: \(error)")
+            print("Failed to save image: \(error)")
         }
         return fileURL
     }
@@ -198,7 +198,7 @@ struct DocumentPicker: UIViewControllerRepresentable {
         }
 
         func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
-            print("文件选择被取消")
+            print("File selection was cancelled")
         }
     }
 }
