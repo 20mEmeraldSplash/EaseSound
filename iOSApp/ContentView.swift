@@ -97,10 +97,10 @@ struct ContentView: View {
                 }) {
                     Text("Upload")
                         .font(.headline)
-                        .foregroundColor(.black)
+                        .foregroundColor(selectedFileURL == nil || selectedImage == nil ? .gray :.black)
                         .padding()
                         .frame(width: 120, height: 32)
-                        .background(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 2))
+                        .background(RoundedRectangle(cornerRadius: 10).stroke(selectedFileURL == nil || selectedImage == nil ? Color.gray :Color.black, lineWidth: 2))
                 }
                 .padding(.trailing, 8)
                 .disabled(selectedFileURL == nil || selectedImage == nil)
