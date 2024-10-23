@@ -21,11 +21,11 @@ struct ContentView: View {
 
     func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
         if let action = message["action"] as? String, action == "update" {
-            print("---------重新加载")
+            print("---------Reloading")
             DispatchQueue.main.async {
-                loadCoverImage() // 重新加载封面图像
-                checkAudioAvailability() // 检查音频是否可用
-                self.coverImage = self.coverImage // 触发视图更新
+                loadCoverImage() // Reload cover image
+                checkAudioAvailability() // Check if audio is available
+                self.coverImage = self.coverImage // Trigger view update
             }
         }
     }
@@ -33,12 +33,12 @@ struct ContentView: View {
     func loadCoverImage() {
         DispatchQueue.main.async {
             let imagePath = URL.documentsDirectory.appendingPathComponent("received_cover_image.png")
-            print("*尝试加载封面图像: \(imagePath)") // 添加调试信息
+            print("*Attempting to load cover image: \(imagePath)") // Debug info
             if let imageData = try? Data(contentsOf: imagePath), let image = UIImage(data: imageData) {
-                self.coverImage = image // 更新封面图像
-                print("*成功加载封面图像") // 添加调试信息
+                self.coverImage = image // Update cover image
+                print("*Successfully loaded cover image") // Debug info
             } else {
-                print("*加载封面图像失败") // 添加调试信息
+                print("*Failed to load cover image") // Debug info
             }
         }
     }
@@ -73,12 +73,12 @@ struct ContentView: View {
             // Play button below the cover image
             if showReceiveButton {
                 Button(action: {
-                    // 点击接收声音按钮后加载音频和封面
+                    // Click to receive audio button to load audio and cover
                     loadCoverImage()
                     checkAudioAvailability()
-                    showReceiveButton = false // 隐藏按钮，显示播放界面
+                    showReceiveButton = false // Hide button, show play interface
                 }) {
-                    Text("接收声音")
+                    Text("Receive Audio")
                         .foregroundColor(.white)
                         .padding()
                         .background(Color.blue)
@@ -86,7 +86,7 @@ struct ContentView: View {
                 }
                 .background(Color.clear)
                 .buttonStyle(PlainButtonStyle()) // Remove default button style
-            } else{
+            } else {
                 Button(action: {
                     playAudio()
                 }) {
@@ -111,9 +111,6 @@ struct ContentView: View {
         }
     }
 
-    
-
-
     // Function to play audio
     func playAudio() {
         loadCoverImage() //可能要删掉
@@ -126,8 +123,6 @@ struct ContentView: View {
             print("Failed to play audio: \(error)")
         }
     }
-
-    
 
     // Start monitoring motion for wrist flick
     private func startMonitoringMotion() {
