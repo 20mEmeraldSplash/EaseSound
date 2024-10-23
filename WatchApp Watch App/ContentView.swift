@@ -105,6 +105,10 @@ struct ContentView: View {
             startMonitoringMotion() // Start motion detection
             loadCoverImage() // Load the cover image if available
             checkAudioAvailability() // Check if audio is available
+            // 新增代码：根据音频可用性更新按钮状态
+            if isAudioAvailable {
+                showReceiveButton = false // 如果音频可用，显示播放按钮
+            }
         }
         .onDisappear {
             stopMonitoringMotion() // Stop motion detection
