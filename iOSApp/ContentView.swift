@@ -17,6 +17,7 @@ struct ContentView: View {
     @State private var uploadedSounds: [String] = []
     @State private var showImagePicker = false
     @State private var selectedImage: UIImage? = nil
+    @State private var successMessage: String? = nil // Add this state for success message
 
     var body: some View {
         VStack(spacing: 16) {
@@ -104,24 +105,14 @@ struct ContentView: View {
                 .padding(.trailing, 8)
                 .disabled(selectedFileURL == nil || selectedImage == nil)
             }
-            /*
-            HStack {
-                Text("My Sound List")
-                    .font(.title2)
-                    .foregroundColor(.black)
-                Spacer()
-                Text("\(uploadedSounds.count)")
-                    .padding(5)
-                    .background(Color.purple.opacity(0.2))
-                    .clipShape(Circle())
-            }
-            .padding()
 
-            List(uploadedSounds, id: \.self) { soundName in
-                Text(soundName)
-                    .background(Color.clear)
+            if let message = successMessage {
+                Text(message) // Display the success message
+                    .font(.body)
+                    .foregroundColor(.green)
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .center) // 使成功消息水平居中
             }
-            */
 
             Spacer()
         }
@@ -148,9 +139,13 @@ struct ContentView: View {
         uploadedSounds.append(selectedFileName)
         print("Uploaded sound list updated: \(uploadedSounds)")
 
+        // Clear selection
         selectedFileName = "No File Selected"
         selectedFileURL = nil
         selectedImage = nil
+
+        // Set success message
+        successMessage = "The file has been successfully received. Please tap the Receive Audio or Play Audio button on your watch."
     }
 
     func saveImageToFile(data: Data) -> URL {
@@ -164,6 +159,7 @@ struct ContentView: View {
         return fileURL
     }
 }
+
 
 // 恢复的 DocumentPicker 组件
 struct DocumentPicker: UIViewControllerRepresentable {
